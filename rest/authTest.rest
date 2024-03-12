@@ -1,0 +1,37 @@
+POST http://127.0.0.1:43808/auth/signup HTTP/1.1
+content-type: application/json
+
+{
+	"email": "test2@gmail.com",
+	"username": "test2",
+	"password": "12345678"
+}
+
+
+###
+
+POST http://127.0.0.1:43808/auth/signin HTTP/1.1
+content-type: application/json
+
+{
+	"username": "daniel",
+	"password": "12345678"
+}
+
+###
+
+POST http://127.0.0.1:43808/auth/refresh HTTP/1.1
+content-type: application/json
+
+{
+	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWVjNjU3MzQyNTc0YmZlMmYzNTExYjEiLCJ1c2VybmFtZSI6InRlc3QiLCJlbWFpbCI6InRlc3RAZ21haWwuY29tIiwiaWF0IjoxNzA5OTkxMzc0fQ.B55mzqF2DydYWDA4OqYxb6B72wC8KgZ4Gxzs2quntnk"
+}
+
+###
+
+DELETE http://127.0.0.1:43808/auth/signout HTTP/1.1
+Content-Type: application/json
+
+{
+	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWVjNjU3MzQyNTc0YmZlMmYzNTExYjEiLCJ1c2VybmFtZSI6InRlc3QiLCJlbWFpbCI6InRlc3RAZ21haWwuY29tIiwiaWF0IjoxNzA5OTkxMzc0fQ.B55mzqF2DydYWDA4OqYxb6B72wC8KgZ4Gxzs2quntnk"
+}

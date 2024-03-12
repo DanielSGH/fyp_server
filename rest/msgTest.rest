@@ -1,0 +1,11 @@
+POST http://127.0.0.1:43808/message/send HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWVhNzg0ZWRkY2YwMmU0Y2IwMTA4OGIiLCJ1c2VybmFtZSI6ImRhbmllbCIsImVtYWlsIjoiZGFuaWVsQGdtYWlsLmNvbSIsImlhdCI6MTcxMDAzNTM3MywiZXhwIjoxNzEwMTIxNzczfQ.43-8oqmTy0F4Bi4aisTnOx5W4TkHvt1j7lA1TS9ZWMU
+
+{
+  "to": "65ed2877e92bdb5f3a8db962",
+  "message": {
+    "from": "65ea784dedcf02e4cb01088b",
+    "text": "Hello, this is a message from 'daniel' to 'test2'!"
+  }
+}

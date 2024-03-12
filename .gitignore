@@ -1,0 +1,3 @@
+*.env
+flashcards.js
+node_modules/

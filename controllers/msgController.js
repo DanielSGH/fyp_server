@@ -16,35 +16,24 @@ module.exports.send = async (req, res) => {
   const sender = await dbModel.findOne('users', { _id: requestSender });
   const rooms = await dbModel.find('messages', { _id: { $in: sender.messages } });
 
-  let roomExists = false;
-  let existingRoomId;
-
-  rooms.forEach(msg => {
-    const roomIDs = msg.participants.map(id => id.toString());
-    const requestParticipantsString = requestParticipants.map(p => p._id.toString());
-    const participantsMatch = roomIDs.every(id => requestParticipantsString.includes(id));
-
-    if (participantsMatch) {
-      roomExists = true;
-      existingRoomId = msg._id;
-      return;
-    }
-  });
+  let { roomExists, existingRoomId } = checkRoomExists(rooms, requestParticipants);
 
   if (roomExists) {
-    if (req.body?.message)
+    if (req.body?.message) {
+      req.body.message.at = new Date().toISOString();
       await dbModel.updateOne('messages', { _id: existingRoomId }, { $push: { messages: req.body.message } });
+    }
   
     return res.status(200).send({ roomID: existingRoomId });
   }
 
-  const newMsg = {
+  const newRoom = {
     _id: roomID,
     participants: requestParticipants,
     ...(!!req.body?.message) && { messages: [req.body.message] }
   };
 
-  await dbModel.insertOne('messages', newMsg);
+  await dbModel.insertOne('messages', newRoom);
   await dbModel.updateOne('users', { _id: requestSender }, { $push: { messages: roomID } });
   
   if (req.body?.message) {
@@ -57,4 +46,25 @@ module.exports.send = async (req, res) => {
 const findUsers = async users => {
   const usersArray = await dbModel.find('users', { _id: { $in: users } });
   return usersArray.map(({ _id, username }) => ({ _id, username }));
+}
+
+function checkRoomExists(rooms, requestParticipants) {
+  let roomExists = false;
+  let existingRoomId;
+
+  rooms.forEach(msg => {
+    const roomIDs = msg.participants.map(p => p._id.toString());
+    const requestParticipantsString = requestParticipants.map(p => p._id.toString());
+    const participantsMatch = roomIDs.every(id => requestParticipantsString.includes(id));
+
+    if (participantsMatch) {
+      roomExists = true;
+      existingRoomId = msg._id;
+      return;
+    }
+
+    return;
+  });
+
+  return { roomExists, existingRoomId };
 }

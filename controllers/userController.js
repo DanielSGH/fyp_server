@@ -22,7 +22,7 @@ module.exports.info = async (req, res) => {
 
     user.contacts = await getContacts({ _id: { $in: contacts.map(contact => new ObjectId(String(contact._id))) } });
     user.newPartners = (await getContacts({ selectedLanguages: { $in: user.selectedLanguages } }))
-    .filter(partner => !user.contacts.some(contact => contact._id.toString() === partner._id.toString()));
+    .filter(partner => !user.contacts.some(contact => contact._id.toString() === partner._id.toString()) && partner._id.toString() !== req.user._id);
 
     let flashcards = await dbModel.findOne('flashcards', { _id: { $in: user.flashcards.map(card => new ObjectId(String(card)))}});
     if (!!flashcards) {

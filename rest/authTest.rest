@@ -4,7 +4,8 @@ content-type: application/json
 {
 	"email": "test2@gmail.com",
 	"username": "test2",
-	"password": "12345678"
+	"password": "12345678",
+	"selectedLanguage": "russian"
 }
 
 

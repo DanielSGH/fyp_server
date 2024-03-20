@@ -22,6 +22,11 @@ module.exports.send = async (req, res) => {
     if (req.body?.message) {
       req.body.message.at = new Date().toISOString();
       await dbModel.updateOne('messages', { _id: existingRoomId }, { $push: { messages: req.body.message } });
+
+      const receiver = await dbModel.findOne('users', { _id: to });
+      if (!receiver.messages.includes(existingRoomId)) {
+        await dbModel.updateOne('users', { _id: to }, { $push: { messages: existingRoomId } });
+      }
     }
   
     return res.status(200).send({ roomID: existingRoomId });
@@ -35,10 +40,6 @@ module.exports.send = async (req, res) => {
 
   await dbModel.insertOne('messages', newRoom);
   await dbModel.updateOne('users', { _id: requestSender }, { $push: { messages: roomID } });
-  
-  if (req.body?.message) {
-    await dbModel.updateOne('users', { _id: to }, { $push: { messages: roomID } });
-  }
 
   res.status(200).send({ roomID });
 };

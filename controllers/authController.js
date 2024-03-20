@@ -12,7 +12,7 @@ module.exports.signup = async (req, res) => {
 			return res.status(500).send({error: "failed to establish connection to database"});
 		}
     
-		const { username, password, email } = req.body;
+		const { username, password, email, selectedLanguage } = req.body;
 		if (!(await validateCredentials({ username, password, email }, res))) return;
 		
 		const _id = new ObjectId();
@@ -20,17 +20,31 @@ module.exports.signup = async (req, res) => {
 		const accessToken = generateAccessToken(credentials);
 		const refreshToken = generateRefreshToken(credentials);
 
+		const flashcardsId = new ObjectId();
+
 		const user = {
 			_id,
 			username,
 			email,
 			password: await bcrypt.hash(password, await bcrypt.genSalt()),
-			flashcards: [],
+			flashcards: [
+				flashcardsId
+			],
 			messages: [],
 			refreshToken,
+			selectedLanguages: [
+				selectedLanguage
+			],
 		}
 
-		await dbModel.userCollection.insertOne(user);
+		dbModel.userCollection.insertOne(user);
+		
+		const cards = await dbModel.find(`fc_${selectedLanguage}`, {});
+		cards.forEach(card => card._id = new ObjectId());
+		dbModel.insertOne('flashcards', {
+			_id: flashcardsId,
+			[selectedLanguage]: cards
+		});
 
 		res.json({ accessToken, refreshToken });
 	} catch (e) {

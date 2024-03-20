@@ -64,6 +64,13 @@ class mongodbModel {
 		return res?.insertedCount;
 	}
 
+	async insertMany(collection, obj) {
+		const col = await this._getCollection(collection);
+		const res = await col.insertMany(obj);
+		
+		return res?.insertedCount;
+	}
+
 	async updateOne(collection, query, update) {
 		const col = await this._getCollection(collection)
 		const res = await col.updateOne(query, update);
@@ -76,6 +83,13 @@ class mongodbModel {
 		const res = await col.updateOne({ "refreshToken": expiredTok }, { $set: { "refreshToken": newTok } });
 		
 		return res?.modifiedCount;
+	}
+
+	async aggregate(collection, pipeline) {
+		const col = await this._getCollection(collection);
+		const res = await col.aggregate(pipeline).toArray();
+		
+		return res;
 	}
 
 	async _getCollection(collection) {

@@ -47,7 +47,8 @@ const getContacts = async (query) => {
   .project({
     username: 1,
     selectedLanguages: 1,
-    _id: 1
+    _id: 1,
+    onlineStatus: 1,
   }).toArray());
 }
 

@@ -3,6 +3,7 @@ const app = express();
 const authRoutes = require('./routes/authRoutes');
 const msgRoutes = require('./routes/msgRoutes');
 const userRoutes = require('./routes/userRoutes');
+const sentencesRoutes = require('./routes/sentencesRoutes');
 const { socketConnection } = require('./controllers/socketIOController');
 const http = require('http');
 const server = http.createServer(app);
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(authRoutes);
 app.use(msgRoutes);
 app.use(userRoutes);
+app.use(sentencesRoutes);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, async () => {

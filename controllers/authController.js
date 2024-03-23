@@ -115,7 +115,7 @@ module.exports.signout = async (req, res) => {
 	}
 
 	try {
-		const { token } = req.body;
+		const token = req.headers['authorization']?.split(' ')[1];
 		if (!token) return res.sendStatus(401);
 		
 		const user = await dbModel.findOne('users', { refreshToken: token });
@@ -127,7 +127,7 @@ module.exports.signout = async (req, res) => {
 
 		res.sendStatus(204);
 	} catch (e) {
-		res.status(500).send(e.message);
+		res.status(500).send({error: e.message});
 	}
 }
 

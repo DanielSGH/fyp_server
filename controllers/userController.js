@@ -45,10 +45,11 @@ const getContacts = async (query) => {
   return await dbModel._getCollection('users')
   .then(col => col.find(query)
   .project({
+    _id: 1,
     username: 1,
     selectedLanguages: 1,
-    _id: 1,
     onlineStatus: 1,
+    profilePicture: 1,
   }).toArray());
 }
 

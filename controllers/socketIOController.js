@@ -34,15 +34,15 @@ module.exports.socketConnection = server => {
   });
 }
 
-const setOnline = async (socket, userID) => {
-  if (await userIDs.find(user => user.userID === userID)) {
+const setOnline = (socket, userID) => {
+  if (userIDs.find(user => user.userID === userID)) {
     return;
   }
 
-  console.log(`setting ${userID} online`);
+  console.log('Setting online: ' + userID);
 
   try {
-    await dbModel.updateOne('users', { _id: new ObjectId(String(userID)) }, { $set: { onlineStatus: "online" } });
+    dbModel.updateOne('users', { _id: new ObjectId(String(userID)) }, { $set: { onlineStatus: "online" } });
   } catch (e) {
     console.log(e);
   }

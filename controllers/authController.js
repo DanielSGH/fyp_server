@@ -96,7 +96,7 @@ module.exports.refresh = async (req, res) => {
 		if (!token) return res.sendStatus(400);
 		
 		const user = await dbModel.findOne('users', { refreshToken: token });
-		if (!user) return res.status(401).send({error: 'Invalid token'});
+		if (!user) return res.status(401).send({error: 'Please log in again'});
 
 		const { _id, username, email } = jwt.decode(token);
 
@@ -119,10 +119,10 @@ module.exports.signout = async (req, res) => {
 		if (!token) return res.sendStatus(401);
 		
 		const user = await dbModel.findOne('users', { refreshToken: token });
-		if (!user) return res.status(403).send({error: 'Invalid token'});
+		if (!user) return res.status(403).send({error: 'Please log in again'});
 
 		if (!(await dbModel.updateRefreshToken(user.refreshToken, ''))) {
-			return res.status(500).send({error: 'Failed to update refresh token'});
+			return res.status(500).send({error: 'Failed to delete refresh token'});
 		}
 
 		res.sendStatus(204);

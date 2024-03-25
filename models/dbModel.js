@@ -78,11 +78,25 @@ class mongodbModel {
 		return res?.modifiedCount;
 	}
 
-	async updateRefreshToken(expiredTok, newTok) {
+	async updateMany(collection, query, update) {
+		const col = await this._getCollection(collection)
+		const res = await col.updateMany(query, update);
+
+		return res?.modifiedCount;
+	}
+
+	async updateRefreshToken(userID, newTok) {
 		const col = await this._getCollection('users');
-		const res = await col.updateOne({ "refreshToken": expiredTok }, { $set: { "refreshToken": newTok } });
+		const res = await col.updateOne({ "_id": userID }, { $set: { "refreshToken": newTok } });
 		
 		return res?.modifiedCount;
+	}
+
+	async deleteOne(collection, query) {
+		const col = await this._getCollection(collection);
+		const res = await col.deleteOne(query);
+		
+		return res?.deletedCount;
 	}
 
 	async aggregate(collection, pipeline) {

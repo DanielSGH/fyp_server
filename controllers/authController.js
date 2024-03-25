@@ -20,21 +20,22 @@ module.exports.signup = async (req, res) => {
 		const accessToken = generateAccessToken(credentials);
 		const refreshToken = generateRefreshToken(credentials);
 
-		const flashcardsId = new ObjectId();
+		const flashcards = new ObjectId();
 
 		const user = {
 			_id,
 			username,
 			email,
 			password: await bcrypt.hash(password, await bcrypt.genSalt()),
-			flashcards: [
-				flashcardsId
-			],
+			profilePicture: null,
+			flashcards,
 			messages: [],
 			refreshToken,
 			selectedLanguages: [
 				selectedLanguage
 			],
+			onlineStatus: 'online',
+			lastSeenTime: '',
 		}
 
 		dbModel.userCollection.insertOne(user);
@@ -42,7 +43,7 @@ module.exports.signup = async (req, res) => {
 		const cards = await dbModel.find(`fc_${selectedLanguage}`, {});
 		cards.forEach(card => card._id = new ObjectId());
 		dbModel.insertOne('flashcards', {
-			_id: flashcardsId,
+			_id: flashcards,
 			[selectedLanguage]: cards
 		});
 
@@ -75,7 +76,7 @@ module.exports.signin = async (req, res) => {
 		const accessToken = generateAccessToken(credentials);
 		const refreshToken = generateRefreshToken(credentials);
 
-		if (!await dbModel.updateRefreshToken(user.refreshToken, refreshToken)) {
+		if (!await dbModel.updateRefreshToken(user._id, refreshToken)) {
 			return res.status(500).send({ error: 'Failed to update refresh token' });
 		}
 	
@@ -113,15 +114,15 @@ module.exports.signout = async (req, res) => {
 		res.sendStatus(500);
 		return;
 	}
-
+	
 	try {
 		const token = req.headers['authorization']?.split(' ')[1];
 		if (!token) return res.sendStatus(401);
 		
-		const user = await dbModel.findOne('users', { refreshToken: token });
+		const user = await dbModel.findOne('users', { _id: new ObjectId(jwt.decode(token)._id) });
 		if (!user) return res.status(403).send({error: 'Please log in again'});
 
-		if (!(await dbModel.updateRefreshToken(user.refreshToken, ''))) {
+		if (!(await dbModel.updateRefreshToken(user._id, ''))) {
 			return res.status(500).send({error: 'Failed to delete refresh token'});
 		}
 

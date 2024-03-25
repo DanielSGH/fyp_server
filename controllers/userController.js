@@ -15,7 +15,6 @@ module.exports.info = async (req, res) => {
       messages?.splice(0, messages.length - 50);
     });
 
-        
     let contacts = user.messages.flatMap(({participants}) => 
       participants.filter(participant => participant._id.toString() !== req.user._id)
     );
@@ -24,13 +23,19 @@ module.exports.info = async (req, res) => {
     user.newPartners = (await getContacts({ selectedLanguages: { $in: user.selectedLanguages } }))
     .filter(partner => !user.contacts.some(contact => contact._id.toString() === partner._id.toString()) && partner._id.toString() !== req.user._id);
 
-    let flashcards = await dbModel.findOne('flashcards', { _id: { $in: user.flashcards.map(card => new ObjectId(String(card)))}});
+    let flashcards = await dbModel.findOne('flashcards', { _id: user.flashcards });
+    let count = 0;
+    while (!flashcards && count++ < 5) {
+      console.log('attempting to get flashcards');
+      flashcards = await dbModel.findOne('flashcards', { _id: user.flashcards });
+    }
+
     if (!!flashcards) {
       [, ...flashcards] = Object.values(flashcards);
       flashcards = flashcards.flat();
 
-      const currentDate = new Date();
-      flashcards = flashcards.filter(card => card.due ? card.due <= currentDate : true);
+      // const currentDate = new Date();
+      // flashcards = flashcards.filter(card => card.due ? card.due <= currentDate : true);
       flashcards = flashcards.sort((a, b) => a.due - b.due);
       user.flashcards = flashcards.slice(0, 100);
     }
@@ -49,6 +54,7 @@ const getContacts = async (query) => {
     username: 1,
     selectedLanguages: 1,
     onlineStatus: 1,
+    lastSeenTime: 1,
     profilePicture: 1,
   }).toArray());
 }
@@ -56,7 +62,7 @@ const getContacts = async (query) => {
 module.exports.flashcards = async (req, res) => {
   try {
     const user = await dbModel.findOne('users', { _id: new ObjectId(String(req.user._id)) });
-    let flashcards = await dbModel.findOne('flashcards', { _id: { $in: user.flashcards.map(card => new ObjectId(String(card)))}});
+    let flashcards = await dbModel.findOne('flashcards', { _id: user.flashcards });
     [, ...flashcards] = Object.values(flashcards);
     flashcards = flashcards.flat().slice(0,100);
     res.status(200).send(flashcards);
@@ -70,16 +76,88 @@ module.exports.updateFlashcard = async (req, res) => {
 
   try {
     const user = await dbModel.findOne('users', { _id: new ObjectId(String(req.user._id)) });
-    let flashcards = await dbModel.findOne('flashcards', { _id: { $in: user.flashcards.map(card => new ObjectId(String(card)))}});
+    let flashcards = await dbModel.findOne('flashcards', { _id: user.flashcards });
     [, ...flashcards] = Object.values(flashcards);
     flashcards = flashcards.flat();
 
     const index = flashcards.findIndex(card => card._id.toString() === oldCard);
     flashcards[index] = newCard;
 
-    await dbModel.updateOne('flashcards', { _id: new ObjectId(String(user.flashcards[0])) }, { $set: { [selectedLanguage]: flashcards } });
+    await dbModel.updateOne('flashcards', { _id: new ObjectId(String(user.flashcards)) }, { $set: { [selectedLanguage]: flashcards } });
     res.status(200).send({ message: 'Flashcard updated' });
   } catch (e) {
     res.status(500).send({ error: e.message });
   }
 };
+
+/*
+
+{
+  "_id": {
+    "$oid": "65ea7856ddcf02e4cb01088c"
+  },
+  "participants": [
+    {
+      "_id": {
+        "$oid": "65ea784eddcf02e4cb01088b"
+      },
+      "username": "daniel"
+    },
+    {
+      "_id": {
+        "$oid": "65ea70ce1172f95249379bb2"
+      },
+      "username": "admin"
+    }
+  ],
+  "messages": [
+    {
+      "from": "65ea784eddcf02e4cb01088b",
+      "message": "Hello, I have a question"
+    },
+    {
+      "from": "65ea70ce1172f95249379bb2",
+      "message": "Hello, what is your question?"
+    },
+    {
+      "from": "65ea70ce1172f95249379bb2",
+      "message": "Is there something you wanted to ask?"
+    },
+    {
+      "from": "65ea784eddcf02e4cb01088b",
+      "message": "Testing!!",
+      "at": "2024-03-19T21:58:42.571Z"
+    },
+    {
+      "from": "65ea784eddcf02e4cb01088b",
+      "message": "hello!!!",
+      "at": "2024-03-19T23:50:20.274Z"
+    }
+  ]
+}
+
+*/
+
+module.exports.deleteAccount = async (req, res) => {
+  try {
+    const user = await dbModel.findOne('users', { _id: new ObjectId(String(req.user._id)) });
+
+    dbModel.updateMany(
+      'messages', 
+      { participants: { $elemMatch: { _id: new ObjectId(String(req.user._id)) } } }, 
+      { 
+        $pull: { 
+          messages: { from: req.user._id }, 
+          participants: { _id: new ObjectId(req.user._id) } 
+        } 
+      }
+    );
+
+    await dbModel.deleteOne('users', { _id: new ObjectId(String(req.user._id)) });
+    await dbModel.deleteOne('flashcards', { _id: new ObjectId(String(user.flashcards)) });
+    res.sendStatus(204);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send({ error: e.message });
+  }
+}

@@ -2,8 +2,8 @@ POST http://127.0.0.1:43808/auth/signup HTTP/1.1
 content-type: application/json
 
 {
-	"email": "test2@gmail.com",
-	"username": "test2",
+	"email": "daniel@gmail.com",
+	"username": "daniel",
 	"password": "12345678",
 	"selectedLanguage": "russian"
 }

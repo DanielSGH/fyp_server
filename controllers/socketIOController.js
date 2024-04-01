@@ -43,6 +43,7 @@ const setOnline = (socket, userID) => {
 
   try {
     dbModel.updateOne('users', { _id: new ObjectId(String(userID)) }, { $set: { onlineStatus: "online" } });
+    io.emit('joined', userID);
   } catch (e) {
     console.log(e);
   }

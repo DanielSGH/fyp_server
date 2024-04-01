@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app.js MONGODB_USERS_URI",
     "dev": "nodemon app.js -- MONGODB_USERS_URI",
-    "docker": "node app.js -- MONGODB_DOCKER_USERS_URI",
+    "docker": "node app.js MONGODB_DOCKER_USERS_URI",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

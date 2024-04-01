@@ -8,9 +8,7 @@ const { ACCESS_SECRET, REFRESH_SECRET } = process.env;
 
 module.exports.signup = async (req, res) => {
 	try {
-		if (!await dbModel.connected) {
-			return res.status(500).send({error: "failed to establish connection to database"});
-		}
+		if (!await checkDatabaseConnected(res)) return;
     
 		const { username, password, email, selectedLanguage } = req.body;
 		if (!(await validateCredentials({ username, password, email }, res))) return;
@@ -38,11 +36,11 @@ module.exports.signup = async (req, res) => {
 			lastSeenTime: '',
 		}
 
-		dbModel.userCollection.insertOne(user);
+		await dbModel.userCollection.insertOne(user);
 		
 		const cards = await dbModel.find(`fc_${selectedLanguage}`, {});
 		cards.forEach(card => card._id = new ObjectId());
-		dbModel.insertOne('flashcards', {
+		await dbModel.insertOne('flashcards', {
 			_id: flashcards,
 			[selectedLanguage]: cards
 		});
@@ -54,10 +52,7 @@ module.exports.signup = async (req, res) => {
 }
 
 module.exports.signin = async (req, res) => {
-	if (!dbModel.connected) {
-		res.status(500).send({error: "failed to establish connection to database"});
-		return;
-	}
+	if (!await checkDatabaseConnected(res)) return;
 
 	try {
 		const { username, password } = req.body;
@@ -87,10 +82,7 @@ module.exports.signin = async (req, res) => {
 }
 
 module.exports.refresh = async (req, res) => {
-	if (!dbModel.connected) {
-		res.sendStatus(500);
-		return;
-	}
+	if (!await checkDatabaseConnected(res)) return;
 
 	try {
 		const { token } = req.body;
@@ -110,10 +102,7 @@ module.exports.refresh = async (req, res) => {
 }
 
 module.exports.signout = async (req, res) => {
-	if (!dbModel.connected) {
-		res.sendStatus(500);
-		return;
-	}
+	if (!await checkDatabaseConnected(res)) return;
 	
 	try {
 		const token = req.headers['authorization']?.split(' ')[1];
@@ -141,7 +130,7 @@ const generateRefreshToken = (user) => {
 }
 
 const validateCredentials = async ({ username, password, email }, res) => {
-	if (dbModel.mainDB?.s?.namespace?.db !== 'main') {
+	if (await dbModel.mainDB?.s?.namespace?.db !== 'main') {
 		res.status(500).send(
       {error: "failed to obtain namespace of db 'main' from dbModel.mainDB"}
     );
@@ -170,6 +159,14 @@ const validateCredentials = async ({ username, password, email }, res) => {
 
 	if (password?.length < 8) {
 		res.status(406).send({error: 'Password must be at least 8 characters long'});
+		return false;
+	}
+
+	return true;
+}
+const checkDatabaseConnected = async (res) => {
+	if (!await dbModel.connected) {
+		res.status(500).send({error: "failed to establish connection to database"});
 		return false;
 	}
 

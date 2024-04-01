@@ -25,8 +25,7 @@ module.exports.info = async (req, res) => {
 
     let flashcards = await dbModel.findOne('flashcards', { _id: user.flashcards });
     let count = 0;
-    while (!flashcards && count++ < 5) {
-      console.log('attempting to get flashcards');
+    while (!flashcards && count++ < 10) {
       flashcards = await dbModel.findOne('flashcards', { _id: user.flashcards });
     }
 
@@ -89,54 +88,6 @@ module.exports.updateFlashcard = async (req, res) => {
     res.status(500).send({ error: e.message });
   }
 };
-
-/*
-
-{
-  "_id": {
-    "$oid": "65ea7856ddcf02e4cb01088c"
-  },
-  "participants": [
-    {
-      "_id": {
-        "$oid": "65ea784eddcf02e4cb01088b"
-      },
-      "username": "daniel"
-    },
-    {
-      "_id": {
-        "$oid": "65ea70ce1172f95249379bb2"
-      },
-      "username": "admin"
-    }
-  ],
-  "messages": [
-    {
-      "from": "65ea784eddcf02e4cb01088b",
-      "message": "Hello, I have a question"
-    },
-    {
-      "from": "65ea70ce1172f95249379bb2",
-      "message": "Hello, what is your question?"
-    },
-    {
-      "from": "65ea70ce1172f95249379bb2",
-      "message": "Is there something you wanted to ask?"
-    },
-    {
-      "from": "65ea784eddcf02e4cb01088b",
-      "message": "Testing!!",
-      "at": "2024-03-19T21:58:42.571Z"
-    },
-    {
-      "from": "65ea784eddcf02e4cb01088b",
-      "message": "hello!!!",
-      "at": "2024-03-19T23:50:20.274Z"
-    }
-  ]
-}
-
-*/
 
 module.exports.deleteAccount = async (req, res) => {
   try {

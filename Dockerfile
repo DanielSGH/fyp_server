@@ -6,4 +6,4 @@ COPY ./package*.json ./
 RUN npm install
 COPY . .
 EXPOSE 43808
-CMD [ "npm", "run", "startDev" ]
+CMD [ "npm", "run", "docker" ]

@@ -29,6 +29,7 @@ module.exports.socketConnection = server => {
 
       dbModel.updateOne('users', { _id: new ObjectId(String(user.userID)) }, { $set: { "onlineStatus": "offline", "lastSeenTime": new Date().toISOString() } });
       userIDs.splice(userIDs.indexOf(user), 1);
+      io.emit('exited', user.userID);
       console.log(user.userID + ' disconnected');
     });
   });

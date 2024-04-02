@@ -13,8 +13,7 @@ module.exports.send = async (req, res) => {
   const requestParticipants = await findUsers([requestSender, to]);
   const roomID = new ObjectId();
 
-  const sender = await dbModel.findOne('users', { _id: requestSender });
-  const rooms = await dbModel.find('messages', { _id: { $in: sender.messages } });
+  const rooms = await dbModel.find('messages', { participants: { $all: requestParticipants } });
 
   let { roomExists, existingRoomId } = checkRoomExists(rooms, requestParticipants);
 
@@ -22,13 +21,10 @@ module.exports.send = async (req, res) => {
     if (req.body?.message) {
       req.body.message.at = new Date().toISOString();
       await dbModel.updateOne('messages', { _id: existingRoomId }, { $push: { messages: req.body.message } });
-
-      const receiver = await dbModel.findOne('users', { _id: to });
-      if (!receiver.messages.includes(existingRoomId)) {
-        await dbModel.updateOne('users', { _id: to }, { $push: { messages: existingRoomId } });
-      }
-    }
-  
+      await dbModel.updateOne('users', { _id: to }, { $addToSet: { messages: existingRoomId } });
+    }    
+    
+    await dbModel.updateOne('users', { _id: requestSender }, { $addToSet: { messages: existingRoomId } });
     return res.status(200).send({ roomID: existingRoomId });
   }
 
